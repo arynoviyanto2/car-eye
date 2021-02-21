@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# dataset
+/Sherbrooke
+/frames/sherbrooke_frames
+
+.vscode
