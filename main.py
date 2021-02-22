@@ -5,61 +5,53 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
-frame_dir = 'frames'
-sub_frame_dir = 'sherbrooke_frames'
 
-working_frame_dir = os.path.join(frame_dir, sub_frame_dir)
+cap = cv2.VideoCapture("footage/sherbrooke_video.avi")
+# cap = cv2.VideoCapture("footage/highway.mp4")
 
-frame_filename = sorted(os.listdir(working_frame_dir))
+if not cap.isOpened():
+    print("Cannot read video")
+    exit()
 
-img_frame = []
+backSub = cv2.createBackgroundSubtractorMOG2(history=300, varThreshold=100, detectShadows=True)
+#backSub = cv2.createBackgroundSubtractorKNN()
 
-img = cv2.imread(os.path.join(working_frame_dir, frame_filename[200]))
+kernel = np.ones((3,3),np.uint8)
 
-gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+while True:
+    ret, frame = cap.read()
+
+    if not ret:
+        print("Can't receive frame")
+        break
+
+    fgMask = backSub.apply(frame)
+
+    _, fgMask = cv2.threshold(fgMask, 254, 255, cv2.THRESH_BINARY)
+
+    fgMask = cv2.morphologyEx(fgMask, cv2.MORPH_OPEN, kernel)
+    fgMask = cv2.morphologyEx(fgMask, cv2.MORPH_DILATE, kernel, iterations=1)
+
+    contours, hierarchy	= cv2.findContours(fgMask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+
+    for contour in contours:
+        x, y, w, h = cv2.boundingRect(contour)
+        cv2.rectangle(frame, (x,y), (x+w,y+h), (0,255,0), 1)
 
 
-_, gray_img = cv2.threshold(img,225,255,cv2.THRESH_BINARY)
+    cv2.imshow('FG Mask', fgMask)
+    cv2.imshow("frame", frame)
 
-edges = cv2.Canny(gray_img,250,251)
 
-plt.imshow(edges)
-plt.show()
 
-# element = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
-# edges = cv2.dilate(edges, element)
+    key = cv2.waitKey(10)
 
-# plt.imshow(edges)
-# plt.show()
+    if key == 27: # Escape
+        break
 
-lines = cv2.HoughLines(edges, 1, np.pi / 90, 60, None, 0, 0)
-    
-if lines is not None:
-    for i in range(0, len(lines)):
-        rho = lines[i][0][0]
-        theta = lines[i][0][1]
-        a = math.cos(theta)
-        b = math.sin(theta)
-        x0 = a * rho
-        y0 = b * rho
-        pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
-        pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
-        #if (i in [0, 2, 3, 5]):
-        cv2.line(img, pt1, pt2, (0,0,255), 1, cv2.LINE_AA)
-        print(str(i) + ': ' + str(rho) + ', ' + str(theta))
-        cv2.putText(img, str(i), (int(x0), int(y0)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+    if key == 32: # Space bar
+        cv2.waitKey(-1) #wait until any key is pressed
 
-plt.imshow(img)
-plt.show()
+cap.release()
+cv2.destroyAllWindows()
 
-# for i in range(1, 4000, 20):
-#     img = cv2.imread(os.path.join(working_frame_dir, frame_filename[i]))
-#     img_frame.append(img)
-#     #print(os.path.join(working_frame_dir, filename))
-
-# i = 17
-# grayA = cv2.cvtColor(img_frame[i], cv2.COLOR_BGR2GRAY)
-# grayB = cv2.cvtColor(img_frame[i+1], cv2.COLOR_BGR2GRAY)
-
-# plt.imshow(cv2.absdiff(grayB, grayA), cmap = 'gray')
-# plt.show()

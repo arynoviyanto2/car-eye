@@ -131,5 +131,6 @@ dmypy.json
 # dataset
 /Sherbrooke
 /frames/sherbrooke_frames
+/footage
 
 .vscode
