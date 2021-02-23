@@ -37,7 +37,6 @@ while True:
 
     contours, hierarchy = cv2.findContours(fgMask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
-    rects = []
     y1 = 300
     y2 = 486
     x1 = 192
