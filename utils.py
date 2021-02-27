@@ -28,13 +28,12 @@ def assign_cars(cars, current_cars, debug=False):
     delta_movement = 800
     delta_tick = 15
 
-    new_car_flag = True
-
     for car in cars:
         car['active'] = False
 
     if len(cars) != 0:
         for candidate in current_cars:
+            new_car_flag = True
             for car in reversed(cars):
                 delta_x = candidate['center'][0] - car['center'][0] + np.finfo(float).eps
                 delta_y = candidate['center'][1] - car['center'][1] + np.finfo(float).eps
@@ -47,8 +46,8 @@ def assign_cars(cars, current_cars, debug=False):
                 # if tick_grad <= delta_tick and movement <= delta_movement * tick_grad:
 
                 inter_area = get_intersection_area(candidate['rect'], car['rect'])
-
-                if inter_area > 0.45 * car['rect'][2] * car['rect'][3] and tick_grad <= delta_tick:
+                # print(inter_area / (car['rect'][2] * car['rect'][3]))
+                if inter_area > (0.7 - tick_grad * 0.02) * car['rect'][2] * car['rect'][3] and tick_grad <= delta_tick:
                     # print(inter_area)
                     if debug:
                         prev_car = {
